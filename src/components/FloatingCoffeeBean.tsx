@@ -59,12 +59,28 @@ export default function FloatingCoffeeBean({
 
   // Proximity mouse-coordinate trigger listener
   useEffect(() => {
+    let lastMoveTime = 0;
+    let lastRectTime = 0;
+    let cachedRect: DOMRect | null = null;
+
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
       
-      const rect = containerRef.current.getBoundingClientRect();
-      const beanCenterX = rect.left + rect.width / 2;
-      const beanCenterY = rect.top + rect.height / 2;
+      const now = Date.now();
+      // Throttle mousemove execution to roughly 12fps (~80ms) to significantly reduce CPU cycles
+      if (now - lastMoveTime < 80) {
+        return;
+      }
+      lastMoveTime = now;
+
+      // Cache getBoundingClientRect to completely eliminate layout thrashing. Refresh only every 1.5 seconds
+      if (!cachedRect || now - lastRectTime > 1500) {
+        cachedRect = containerRef.current.getBoundingClientRect();
+        lastRectTime = now;
+      }
+      
+      const beanCenterX = cachedRect.left + cachedRect.width / 2;
+      const beanCenterY = cachedRect.top + cachedRect.height / 2;
       
       // Calculate Euclidean distance to detect when cursor is near the bean
       const distance = Math.sqrt(
@@ -76,7 +92,6 @@ export default function FloatingCoffeeBean({
       const PROXIMITY_RADIUS = 120;
       
       if (distance < PROXIMITY_RADIUS) {
-        const now = Date.now();
         // Cooldown period (2.5 seconds total: 1s active + 1.5s delay) to maintain elegant aesthetic
         if (isPowderRef.current || now - lastTriggerTime.current < 2500) {
           return;

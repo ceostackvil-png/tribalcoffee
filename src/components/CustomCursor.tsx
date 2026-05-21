@@ -11,32 +11,37 @@ export default function CustomCursor() {
     // Center starting point
     gsap.set(cursor, { xPercent: -50, yPercent: -50, x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
+    // Highly optimized GSAP quickTo setters for zero-allocation animation
+    const xTo = gsap.quickTo(cursor, "x", { duration: 0.4, ease: 'power2.out' });
+    const yTo = gsap.quickTo(cursor, "y", { duration: 0.4, ease: 'power2.out' });
+
     const onMouseMove = (e: MouseEvent) => {
-      gsap.to(cursor, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.4,
-        ease: 'power2.out',
-        overwrite: 'auto',
-      });
+      xTo(e.clientX);
+      yTo(e.clientY);
     };
 
+    let isHovered = false;
     const onMouseOverInteractive = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const isInteractive = 
+      const shouldHover = !!(
         target.tagName === 'BUTTON' || 
         target.tagName === 'A' || 
         target.closest('a') || 
         target.closest('button') ||
-        target.closest('[data-hover-glow]');
+        target.closest('[data-hover-glow]')
+      );
 
-      if (isInteractive) {
+      if (shouldHover === isHovered) return;
+      isHovered = shouldHover;
+
+      if (shouldHover) {
         gsap.to(cursor, {
           width: 60,
           height: 60,
           backgroundColor: 'rgba(200, 169, 126, 0.15)',
           borderColor: 'rgba(200, 169, 126, 0.8)',
           duration: 0.3,
+          overwrite: 'auto',
         });
       } else {
         gsap.to(cursor, {
@@ -45,12 +50,13 @@ export default function CustomCursor() {
           backgroundColor: 'rgba(200, 169, 126, 0.05)',
           borderColor: 'rgba(200, 169, 126, 0.4)',
           duration: 0.3,
+          overwrite: 'auto',
         });
       }
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseover', onMouseOverInteractive);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('mouseover', onMouseOverInteractive, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);

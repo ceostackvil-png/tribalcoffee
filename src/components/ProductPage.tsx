@@ -35,7 +35,12 @@ export default function ProductPage({ product, onClose, onAddToBag }: ProductPag
     const container = document.getElementById('product-page-container');
     if (container) container.scrollTo(0, 0);
 
+    let lastScrollTime = 0;
     const handleScroll = () => {
+      const now = Date.now();
+      if (now - lastScrollTime < 60) return;
+      lastScrollTime = now;
+
       if (!mainCtaRef.current || !container) return;
       const ctaBottom = mainCtaRef.current.getBoundingClientRect().bottom;
       
@@ -47,7 +52,7 @@ export default function ProductPage({ product, onClose, onAddToBag }: ProductPag
       }
     };
 
-    container?.addEventListener('scroll', handleScroll);
+    container?.addEventListener('scroll', handleScroll, { passive: true });
     return () => container?.removeEventListener('scroll', handleScroll);
   }, [product]);
 
