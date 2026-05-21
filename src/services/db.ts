@@ -19,7 +19,7 @@ export interface RealProduct {
   glowColor: string;
 }
 
-export const TRIBAL_PRODUCTS: RealProduct[] = [
+const DEFAULT_PRODUCTS: RealProduct[] = [
   {
     id: 'just-arabica-beans',
     name: 'Just Arabica Coffee Beans',
@@ -118,13 +118,73 @@ export const TRIBAL_PRODUCTS: RealProduct[] = [
   }
 ];
 
+// Seed the TRIBAL_PRODUCTS array from localStorage or defaults
+const getInitialProducts = (): RealProduct[] => {
+  if (typeof window === 'undefined') return DEFAULT_PRODUCTS;
+  const stored = localStorage.getItem('tribal_products');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error('Failed to parse tribal_products from localStorage', e);
+      return DEFAULT_PRODUCTS;
+    }
+  } else {
+    localStorage.setItem('tribal_products', JSON.stringify(DEFAULT_PRODUCTS));
+    return DEFAULT_PRODUCTS;
+  }
+};
+
+export const TRIBAL_PRODUCTS: RealProduct[] = getInitialProducts();
+
+const notifyListeners = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('tribal-db-changed'));
+  }
+};
+
+const syncToStorage = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('tribal_products', JSON.stringify(TRIBAL_PRODUCTS));
+  }
+};
+
+export function addProduct(product: RealProduct) {
+  TRIBAL_PRODUCTS.push(product);
+  syncToStorage();
+  notifyListeners();
+}
+
+export function updateProduct(updated: RealProduct) {
+  const idx = TRIBAL_PRODUCTS.findIndex(p => p.id === updated.id);
+  if (idx !== -1) {
+    TRIBAL_PRODUCTS[idx] = updated;
+    syncToStorage();
+    notifyListeners();
+  }
+}
+
+export function deleteProduct(id: string) {
+  const idx = TRIBAL_PRODUCTS.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    TRIBAL_PRODUCTS.splice(idx, 1);
+    syncToStorage();
+    notifyListeners();
+  }
+}
+
+export function resetDB() {
+  TRIBAL_PRODUCTS.length = 0;
+  TRIBAL_PRODUCTS.push(...DEFAULT_PRODUCTS);
+  syncToStorage();
+  notifyListeners();
+}
+
 export function getProductById(id: string): RealProduct | undefined {
   return TRIBAL_PRODUCTS.find(p => p.id === id);
 }
 
 export function getProductsByCategory(category: 'beans' | 'powder' | 'specialty' | 'filter'): RealProduct[] {
-  if (category === 'filter') {
-    return TRIBAL_PRODUCTS.filter(p => p.category === 'filter');
-  }
   return TRIBAL_PRODUCTS.filter(p => p.category === category);
 }
+

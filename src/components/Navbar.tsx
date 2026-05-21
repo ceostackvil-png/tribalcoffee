@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Search, Menu, X } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Shield } from 'lucide-react';
 
 interface NavbarProps {
   onCartToggle?: () => void;
   cartCount?: number;
+  onAdminToggle?: () => void;
 }
 
-export default function Navbar({ onCartToggle, cartCount = 2 }: NavbarProps) {
+export default function Navbar({ onCartToggle, cartCount = 2, onAdminToggle }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -195,6 +196,17 @@ export default function Navbar({ onCartToggle, cartCount = 2 }: NavbarProps) {
         {/* RIGHT ICONS - Circular Glassmorphic slot containers */}
         <div className="flex items-center gap-3 md:gap-4">
           
+          {/* Admin Trigger slot */}
+          <button
+            id="nav-admin-btn"
+            onClick={onAdminToggle}
+            className="p-2.5 bg-cream-latte/5 hover:bg-warm-gold/15 border border-cream-latte/10 hover:border-warm-gold/30 rounded-full transition-all duration-300 relative group cursor-pointer shadow-md hover:scale-105"
+            aria-label="Open Admin Control Vault"
+            title="Admin Control Vault"
+          >
+            <Shield size={16} className="stroke-[2.5] text-cream-latte group-hover:text-warm-gold transition-colors" />
+          </button>
+
           {/* Search Trigger slot */}
           <button
             id="nav-search-btn"

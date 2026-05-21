@@ -13,6 +13,7 @@ import { TRIBAL_PRODUCTS, type RealProduct } from './services/db';
 import type { CartItem } from './components/CartDrawer';
 import { CheckCircle2, ShieldCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdminDashboard from './components/AdminDashboard';
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([
@@ -28,10 +29,21 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeDetailProduct, setActiveDetailProduct] = useState<RealProduct | null>(null);
   const [checkoutStatus, setCheckoutStatus] = useState<'idle' | 'success'>('idle');
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [dbVersion, setDbVersion] = useState(0);
 
   // Handle scroll to top on reload
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  // Listen to product database changes to trigger seamless react re-renders
+  useEffect(() => {
+    const handleDbChange = () => {
+      setDbVersion(prev => prev + 1);
+    };
+    window.addEventListener('tribal-db-changed', handleDbChange);
+    return () => window.removeEventListener('tribal-db-changed', handleDbChange);
   }, []);
 
   const handleAddToBag = (product: RealProduct) => {
@@ -81,13 +93,25 @@ export default function App() {
       <CustomCursor />
 
       {/* Branded Top Navbar */}
-      <Navbar onCartToggle={() => setIsCartOpen(!isCartOpen)} cartCount={cartCount} />
+      <Navbar
+        onCartToggle={() => setIsCartOpen(!isCartOpen)}
+        cartCount={cartCount}
+        onAdminToggle={() => setIsAdminOpen(true)}
+      />
 
       {/* Cinematic Hero & Dynamic Carousel */}
-      <Hero onAddToBag={handleAddToBag} onViewDetails={setActiveDetailProduct} />
+      <Hero
+        key={`hero-${dbVersion}`}
+        onAddToBag={handleAddToBag}
+        onViewDetails={setActiveDetailProduct}
+      />
 
       {/* Curated Product Showcase */}
-      <ProductShowcase onAddToBag={handleAddToBag} onViewDetails={setActiveDetailProduct} />
+      <ProductShowcase
+        key={`showcase-${dbVersion}`}
+        onAddToBag={handleAddToBag}
+        onViewDetails={setActiveDetailProduct}
+      />
 
       {/* Heritage Narrative Segment */}
       <AboutSection />
@@ -190,6 +214,13 @@ export default function App() {
               </button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ADMIN CONTROL PANEL OVERLAY */}
+      <AnimatePresence>
+        {isAdminOpen && (
+          <AdminDashboard onClose={() => setIsAdminOpen(false)} />
         )}
       </AnimatePresence>
     </div>
