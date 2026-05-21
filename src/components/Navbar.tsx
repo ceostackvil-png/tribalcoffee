@@ -103,7 +103,7 @@ export default function Navbar({ onCartToggle, cartCount = 2 }: NavbarProps) {
           
           <div className="relative p-1 rounded-xl bg-gradient-to-br from-warm-gold/20 via-transparent to-warm-gold/5 border border-warm-gold/20 group-hover:border-warm-gold/45 group-hover:scale-105 transition-all duration-500 shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
             <img 
-              src="/images/tribal_coffee_logo.png" 
+              src="/images/Logo-Registered.png" 
               alt="Tribal Coffee Logo" 
               className="h-8 md:h-9 w-auto object-contain filter invert brightness-110 group-hover:rotate-[12deg] transition-all duration-500"
             />

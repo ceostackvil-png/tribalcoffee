@@ -809,7 +809,7 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
       </div>
 
       {/* 4. MAIN SPLIT CONTENT GRID CONTAINER */}
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:grid md:grid-cols-[1.1fr_1fr] gap-12 md:gap-8 items-center justify-center flex-grow z-10 relative">
+      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:grid md:grid-cols-[0.95fr_1.05fr] gap-12 md:gap-8 items-center justify-center flex-grow z-10 relative">
         
         {/* LEFT COLUMN: Product information & navigation selector */}
         <div className="order-2 md:order-1 text-left flex flex-col justify-center min-h-[340px] md:min-h-[450px] w-full">
@@ -916,7 +916,7 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
         </div>
 
         {/* RIGHT COLUMN: Premium 3D Rotating Carousel */}
-        <div className="order-1 md:order-2 w-full h-[360px] md:h-[480px] relative flex items-center justify-center overflow-visible">
+        <div className="order-1 md:order-2 w-full h-[380px] sm:h-[460px] md:h-[580px] lg:h-[700px] relative flex items-center justify-center overflow-visible">
           {/* Floating Left Navigation Button */}
           <button
             onClick={prevSlide}
@@ -934,22 +934,22 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
               const isLeft = offset === -1;
               const isRight = offset === 1;
 
-              // Strict percentage spacing rules: LEFT BACK: 28%, LEFT SIDE: 38%, CENTER: 50%, RIGHT SIDE: 62%, RIGHT BACK: 72%
+              // Strict percentage spacing rules: LEFT BACK: 22%, LEFT SIDE: 34%, CENTER: 50%, RIGHT SIDE: 66%, RIGHT BACK: 78%
               const leftPos = offset === -2 
-                ? "28%" 
+                ? "22%" 
                 : offset === -1 
-                  ? "38%" 
+                  ? "34%" 
                   : offset === 0 
                     ? "50%" 
                     : offset === 1 
-                      ? "62%" 
-                      : "72%";
+                      ? "66%" 
+                      : "78%";
 
               const scaleVal = isActive 
-                ? 1.22 
+                ? 1.15 
                 : Math.abs(offset) === 1 
                   ? 0.82 
-                  : 0.65;
+                  : 0.60;
 
               const opacityVal = isActive 
                 ? 1.0 
@@ -958,7 +958,7 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
                   : 0.25;
 
               const zIndexVal = isActive 
-                ? 30 
+                ? 40 
                 : Math.abs(offset) === 1 
                   ? 20 
                   : 10;
@@ -1012,12 +1012,12 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
                     }
                   }}
                   id={`carousel-card-${product.id}`}
-                  className="absolute flex flex-col items-center justify-center w-56 md:w-64 h-full cursor-pointer select-none"
+                  className="absolute flex flex-col items-center justify-center w-[280px] h-[360px] md:w-[380px] md:h-[520px] lg:w-[500px] lg:h-[680px] cursor-pointer select-none"
                 >
                   {/* Gold Ambient Backing Light - shifting dynamically in opposite parallax direction */}
                   {isActive && (
                     <div 
-                      className="absolute inset-0 rounded-full filter blur-[100px] opacity-65 -z-10 mix-blend-screen transition-transform duration-300 ease-out"
+                      className="absolute inset-0 rounded-full filter blur-[100px] opacity-75 -z-10 mix-blend-screen transition-transform duration-300 ease-out"
                       style={{ 
                         background: `radial-gradient(circle, ${product.glowColor} 0%, transparent 70%)`,
                         transform: `translate3d(${glowOffset.x}px, ${glowOffset.y}px, -60px)`
@@ -1031,12 +1031,12 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
                   {/* Float & Motion Interaction Layer */}
                   <motion.div
                     animate={isActive ? {
-                      y: [0, -12, 0]
+                      y: [0, -16, 0]
                     } : { y: 0 }}
                     transition={{
                       y: isActive ? {
                         repeat: Infinity,
-                        duration: 5,
+                        duration: 6.5,
                         ease: "easeInOut"
                       } : { duration: 0.5 }
                     }}
@@ -1047,14 +1047,15 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
                     }}
                   >
                     {/* Uniform Aspect-Locked Product Package Image Container */}
-                    <div className="w-48 h-64 md:w-56 md:h-80 flex items-center justify-center relative overflow-visible">
+                    <div className="w-[280px] h-[360px] md:w-[380px] md:h-[500px] lg:w-[520px] lg:h-[650px] flex items-center justify-center relative overflow-visible">
                       <img
                         src={product.image}
                         alt={product.name}
                         loading="eager"
                         decoding="async"
                         id={`product-image-${product.id}`}
-                        className="w-full h-full object-contain object-center drop-shadow-[0_45px_60px_rgba(0,0,0,0.85)] filter brightness-105"
+                        className="w-full h-full object-contain object-center drop-shadow-[0_50px_70px_rgba(0,0,0,0.9)] filter brightness-105 transition-transform duration-500"
+                        style={{ imageRendering: '-webkit-optimize-contrast', willChange: 'transform' }}
                       />
                     </div>
 
