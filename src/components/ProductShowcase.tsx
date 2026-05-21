@@ -138,15 +138,15 @@ export default function ProductShowcase({ onAddToBag, onViewDetails }: ProductSh
               {/* Product Image & Float Animation */}
               <div 
                 onClick={() => onViewDetails(product)}
-                className="relative h-64 w-full flex items-center justify-center mb-8 overflow-hidden cursor-pointer"
+                className="relative h-72 w-full flex items-center justify-center mb-6 cursor-pointer"
               >
                 {/* Image Soft Shadow Glow Base */}
-                <div className="absolute w-36 h-8 rounded-full bg-black/60 filter blur-xl bottom-6 opacity-80 group-hover:scale-x-90 transition-transform duration-700" />
+                <div className="absolute w-44 h-8 rounded-full bg-black/60 filter blur-xl bottom-4 opacity-80 group-hover:scale-x-95 transition-all duration-700" />
                 
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="h-56 object-contain transform group-hover:scale-105 group-hover:-translate-y-4 group-hover:rotate-1 transition-all duration-700 filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.85)]"
+                  className="h-64 object-contain transform scale-110 group-hover:scale-120 group-hover:-translate-y-6 group-hover:rotate-1 transition-all duration-700 filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.9)]"
                 />
               </div>
 
