@@ -73,7 +73,7 @@ export default function Footer() {
               className="flex items-center gap-3 text-2xl font-playfair font-bold tracking-widest text-cream-latte mb-6 block"
             >
               <img 
-                src="/images/Logo-Registered.png" 
+                src="/images/Logo-Registered.webp" 
                 alt="Tribal Coffee Logo" 
                 className="h-10 w-auto object-contain filter invert brightness-110 hover:scale-105 transition-transform duration-300 inline-block"
               />

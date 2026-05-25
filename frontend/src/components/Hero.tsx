@@ -174,7 +174,7 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-1000 opacity-20 mix-blend-overlay"
           style={{ 
-            backgroundImage: `url('/images/luxury_coffee_hero_bg.png')`,
+            backgroundImage: `url('/images/luxury_coffee_hero_bg.webp')`,
           }}
         />
 

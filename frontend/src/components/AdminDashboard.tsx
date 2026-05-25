@@ -82,7 +82,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [formPrice, setFormPrice] = useState(399);
   const [formOriginalPrice, setFormOriginalPrice] = useState('');
   const [formTastingNotes, setFormTastingNotes] = useState('');
-  const [formImage, setFormImage] = useState('/images/Arabica Coffee Beans.png');
+  const [formImage, setFormImage] = useState('/images/Arabica Coffee Beans.webp');
   const [formDescription, setFormDescription] = useState('');
   const [formAromaDescription, setFormAromaDescription] = useState('');
   const [formBgGradient, setFormBgGradient] = useState('radial-gradient(circle at 50% 40%, rgba(43, 24, 16, 0.45) 0%, rgba(17, 17, 17, 1) 70%)');
@@ -219,7 +219,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
     setFormPrice(449);
     setFormOriginalPrice('');
     setFormTastingNotes('Sweet Caramel, Dark Cacao, Fruit Compote');
-    setFormImage('/images/Arabica Coffee Beans.png');
+    setFormImage('/images/Arabica Coffee Beans.webp');
     setFormDescription('');
     setFormAromaDescription('');
     setFormBgGradient('radial-gradient(circle at 50% 40%, rgba(55, 30, 20, 0.45) 0%, rgba(17, 17, 17, 1) 70%)');
@@ -1502,7 +1502,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                     value={formImage}
                     onChange={(e) => setFormImage(e.target.value)}
                     className="w-full px-4 py-2.5 bg-espresso/50 border border-cream-latte/10 rounded-xl text-cream-latte focus:outline-none focus:border-warm-gold/30"
-                    placeholder="e.g. /images/Arabica Coffee Beans.png"
+                    placeholder="e.g. /images/Arabica Coffee Beans.webp"
                   />
                 </div>
 
