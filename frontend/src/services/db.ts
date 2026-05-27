@@ -19,7 +19,8 @@ export interface RealProduct {
   glowColor: string;
 }
 
-export const API_BASE_URL = 'http://127.0.0.1:5001';
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+export const API_BASE_URL = (configuredApiBaseUrl || 'http://127.0.0.1:5001').replace(/\/+$/, '');
 
 export const TRIBAL_PRODUCTS: RealProduct[] = [
   {
