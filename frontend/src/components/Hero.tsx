@@ -562,7 +562,7 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
           {/* Floating Left Navigation Button */}
           <button
             onClick={prevSlide}
-            className="absolute left-2 md:-left-8 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-warm-gold/40 hover:scale-110 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer group"
+            className="absolute -left-6 md:-left-16 lg:-left-24 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-warm-gold/40 hover:scale-110 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer group"
             aria-label="Previous Product"
           >
             <ArrowLeft size={20} className="stroke-[2] group-hover:-translate-x-0.5 transition-transform duration-300" />
@@ -714,16 +714,14 @@ export default function Hero({ onAddToBag, onViewDetails }: HeroProps) {
               );
             })}
           </div>
-
           {/* Floating Right Navigation Button */}
           <button
             onClick={nextSlide}
-            className="absolute right-2 md:-right-8 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-warm-gold/40 hover:scale-110 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer group"
+            className="absolute -right-6 md:-right-16 lg:-right-24 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full backdrop-blur-md bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-warm-gold/40 hover:scale-110 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] cursor-pointer group"
             aria-label="Next Product"
           >
             <ArrowRight size={20} className="stroke-[2] group-hover:translate-x-0.5 transition-transform duration-300" />
-          </button>
-        </div>
+          </button>        </div>
 
       </div>
     </section>

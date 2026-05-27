@@ -5,7 +5,7 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="py-16 md:py-24 bg-gradient-about w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
+      className="pt-16 md:pt-24 pb-8 md:pb-12 bg-gradient-about w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
     >
       {/* Decorative background ambient glows */}
       <div className="absolute inset-0 pointer-events-none z-0">

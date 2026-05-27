@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Search, Menu, X, Shield } from 'lucide-react';
+
+import { ShoppingBag, Search, Menu, X, User } from 'lucide-react';
 
 interface NavbarProps {
   onCartToggle?: () => void;
   cartCount?: number;
   onAdminToggle?: () => void;
+  userInitials?: string;
 }
 
-export default function Navbar({ onCartToggle, cartCount = 2, onAdminToggle }: NavbarProps) {
+export default function Navbar({ onCartToggle, cartCount = 2, onAdminToggle, userInitials }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -196,15 +198,22 @@ export default function Navbar({ onCartToggle, cartCount = 2, onAdminToggle }: N
         {/* RIGHT ICONS - Circular Glassmorphic slot containers */}
         <div className="flex items-center gap-3 md:gap-4">
           
-          {/* Admin Trigger slot */}
+
+          {/* User Account Profile slot */}
           <button
-            id="nav-admin-btn"
+            id="nav-user-btn"
             onClick={onAdminToggle}
             className="p-2.5 bg-cream-latte/5 hover:bg-warm-gold/15 border border-cream-latte/10 hover:border-warm-gold/30 rounded-full transition-all duration-300 relative group cursor-pointer shadow-md hover:scale-105"
-            aria-label="Open Admin Control Vault"
-            title="Admin Control Vault"
+            aria-label="User Account Login"
+            title={userInitials ? "Logged In (Click to Logout)" : "User Account Login"}
           >
-            <Shield size={16} className="stroke-[2.5] text-cream-latte group-hover:text-warm-gold transition-colors" />
+            {userInitials ? (
+              <span className="text-[10px] font-sans font-black text-warm-gold uppercase tracking-wider h-4 w-4 flex items-center justify-center">
+                {userInitials}
+              </span>
+            ) : (
+              <User size={16} className="stroke-[2.5] text-cream-latte group-hover:text-warm-gold transition-colors" />
+            )}
           </button>
 
           {/* Search Trigger slot */}

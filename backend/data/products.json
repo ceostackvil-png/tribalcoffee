@@ -1,7 +1,7 @@
 [
   {
     "id": "just-arabica-beans",
-    "name": "Just Arabica Coffee Beans",
+    "name": "Arabica Coffee Beans",
     "category": "beans",
     "tagline": "100% ORGANIC ARAKU BEANS",
     "roast": "Medium-Dark Roast",
@@ -10,7 +10,12 @@
     "acidity": 2,
     "body": 4,
     "chicory": "0% Chicory",
-    "tastingNotes": ["Sweet Caramel", "Roasted Almond", "Mild Citrus", "Smoky Oak"],
+    "tastingNotes": [
+      "Sweet Caramel",
+      "Roasted Almond",
+      "Mild Citrus",
+      "Smoky Oak"
+    ],
     "price": 449,
     "originalPrice": 499,
     "image": "/images/Arabica Coffee Beans.webp",
@@ -21,7 +26,7 @@
   },
   {
     "id": "just-arabica-fine-powder",
-    "name": "Just Arabica Fine Ground Powder",
+    "name": "Arabica Fine Ground Powder",
     "category": "powder",
     "tagline": "MICRO-BATCH ARABICA ESPRESSO GRIND",
     "roast": "Medium Roast",
@@ -30,7 +35,11 @@
     "acidity": 3,
     "body": 3.5,
     "chicory": "0% Chicory",
-    "tastingNotes": ["Cocoa Nibs", "Warm Nutmeg", "Floral Honey"],
+    "tastingNotes": [
+      "Cocoa Nibs",
+      "Warm Nutmeg",
+      "Floral Honey"
+    ],
     "price": 449,
     "image": "/images/Arabica Fine Ground Powder.webp",
     "description": "Freshly packed-to-order organic Arabica fine grinds, tailored specifically for high-pressure brewing methods like Espresso machines, Aeropress, or traditional stovetop Moka Pots. Offers a bright, balanced crema with intricate spice profiles.",
@@ -40,7 +49,7 @@
   },
   {
     "id": "just-arabica-coarse-powder",
-    "name": "Just Arabica Coarse Ground Powder",
+    "name": "Arabica Coarse Ground Powder",
     "category": "powder",
     "tagline": "SLOW IMMERSION DEEP BREW",
     "roast": "Medium-Dark Roast",
@@ -49,7 +58,11 @@
     "acidity": 2,
     "body": 4,
     "chicory": "0% Chicory",
-    "tastingNotes": ["Dark Chocolate", "Smoked Mahogany", "Toasted Hazelnut"],
+    "tastingNotes": [
+      "Dark Chocolate",
+      "Smoked Mahogany",
+      "Toasted Hazelnut"
+    ],
     "price": 449,
     "image": "/images/Arabica Coarse Ground Powder.webp",
     "description": "Organic Arabica beans ground to a coarse, uniform size to prevent over-extraction. Perfect for slow immersion coffee rituals including French Press, Cold Brew drippers, or siphon brewers. Brings out heavy-bodied cocoa depths.",
@@ -68,7 +81,11 @@
     "acidity": 1,
     "body": 5,
     "chicory": "40% Chicory",
-    "tastingNotes": ["Intense Cacao", "Chicory Sweetness", "Heavy Molasses"],
+    "tastingNotes": [
+      "Intense Cacao",
+      "Chicory Sweetness",
+      "Heavy Molasses"
+    ],
     "price": 299,
     "image": "/images/South Indian Filter Coffee Powder.webp",
     "description": "The definitive traditional South Indian filter coffee blend. Combining 60% high-altitude shade-grown Arabica and Robusta beans from Araku with 40% premium, slow-roasted French chicory. Delivers an incredibly thick, strong, and highly aromatic morning cup that pairs flawlessly with warm frothed milk.",
@@ -78,7 +95,7 @@
   },
   {
     "id": "just-arabica-cold-brew",
-    "name": "Just Arabica Cold Brew Concentrate",
+    "name": "Arabica Cold Brew Concentrate",
     "category": "specialty",
     "tagline": "24-HOUR SLOW DRIPPED NECTAR",
     "roast": "Cold Steepted",
@@ -87,7 +104,11 @@
     "acidity": 1,
     "body": 4,
     "chicory": "0% Chicory",
-    "tastingNotes": ["Vanilla Pod", "Floral Jasmine", "Crisp Toffee"],
+    "tastingNotes": [
+      "Vanilla Pod",
+      "Floral Jasmine",
+      "Crisp Toffee"
+    ],
     "price": 399,
     "image": "/images/Arabica Cold Brew Concentrate.webp",
     "description": "Our signature cold-brewed nectar, slow-extracted over 24 hours in cold spring water from pure organic Araku Arabica beans. Yields an incredibly smooth, naturally sweet concentrate containing twice the caffeine kick of hot brew, with practically zero bitterness or acidity.",

@@ -33,7 +33,7 @@ export default function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="py-16 md:py-24 bg-gradient-testimonials w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
+      className="pt-8 md:pt-12 pb-16 md:pb-24 bg-gradient-testimonials w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
     >
       {/* Background radial soft lights */}
       <div className="absolute inset-0 pointer-events-none z-0">

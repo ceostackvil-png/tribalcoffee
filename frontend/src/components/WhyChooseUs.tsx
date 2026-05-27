@@ -33,7 +33,7 @@ export default function WhyChooseUs() {
   return (
     <section
       id="collections"
-      className="py-16 md:py-24 bg-gradient-whyus w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
+      className="pt-8 md:pt-12 pb-8 md:pb-12 bg-gradient-whyus w-full relative z-10 overflow-hidden border-t border-warm-gold/5"
     >
       {/* Decorative backing glows */}
       <div className="absolute inset-0 pointer-events-none z-0">

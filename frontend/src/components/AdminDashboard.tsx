@@ -48,16 +48,14 @@ interface AdminUser {
   email: string;
   role: 'Super Admin' | 'Lounge Manager' | 'Dispatcher';
   status: 'Active' | 'Pending';
-}
-
-export default function AdminDashboard({ onClose }: { onClose: () => void }) {
+}export default function AdminDashboard({ onClose, loggedInUser, setLoggedInUser }: { onClose: () => void; loggedInUser?: any; setLoggedInUser?: (user: any) => void }) {
   // Security Portal states
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(loggedInUser?.email === 'admin@tribalcoffee.in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
-
+  const [adminName, setAdminName] = useState(loggedInUser?.name || 'Sharmila K');
   // General navigation
   const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'shiprocket' | 'chat' | 'admins'>('analytics');
 
@@ -90,10 +88,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
 
   // Shiprocket states
   const [shipments, setShipments] = useState<ShipmentOrder[]>([
-    { id: 'TRB-8729', customerName: 'Aravind Swamy', email: 'aravind@gmail.com', city: 'Hyderabad', pincode: '500001', productName: 'Just Arabica Coffee Beans', amount: 449, status: 'Pending' },
-    { id: 'TRB-9021', customerName: 'Priya Nair', email: 'priya@gmail.com', city: 'Bengaluru', pincode: '560008', productName: 'Just Arabica Cold Brew Concentrate', amount: 399, status: 'Ready to Ship' },
-    { id: 'TRB-3428', customerName: 'Karan Mehra', email: 'karan@gmail.com', city: 'Mumbai', pincode: '400001', productName: 'South Indian Filter Coffee Powder', amount: 598, status: 'Dispatched', awb: 'SR99201948', courier: 'Delhivery Express' },
-    { id: 'TRB-6712', customerName: 'Shalini Sen', email: 'shalini@gmail.com', city: 'Kolkata', pincode: '700012', productName: 'Just Arabica Fine Ground Powder', amount: 449, status: 'Delivered', awb: 'SR77382103', courier: 'Xpressbees Prime' }
+    { id: 'TRB-8729', customerName: 'Aravind Swamy', email: 'aravind@gmail.com', city: 'Hyderabad', pincode: '500001', productName: 'Just Arabica Coffee Beans', amount: 449, status: 'Dispatched', awb: 'SR99201948', courier: 'Delhivery Express' }
   ]);
   const [calcSource, setCalcSource] = useState('530003'); // Visakhapatnam Araku dispatch hub
   const [calcDest, setCalcDest] = useState('560001'); // Bengaluru central hub
@@ -101,58 +96,16 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [shippingRates, setShippingRates] = useState<any[] | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedLabelShipment, setSelectedLabelShipment] = useState<ShipmentOrder | null>(null);
-
+  const [selectedTrackingShipment, setSelectedTrackingShipment] = useState<ShipmentOrder | null>(null);
   // Live Chat states
-  const [chats, setChats] = useState<ActiveChat[]>([
-    {
-      id: 'chat-1',
-      customerName: 'Aravind Swamy',
-      avatarColor: 'bg-warm-gold/25 text-warm-gold',
-      lastMessage: 'When will my Arabica beans be dispatched?',
-      topic: 'Delivery status query',
-      status: 'active',
-      messages: [
-        { id: '1', sender: 'user', text: 'Hi there! I placed an order yesterday for Just Arabica Beans.', time: '04:10 PM' },
-        { id: '2', sender: 'admin', text: 'Hello Aravind! Thank you for choosing Tribal Coffee. Your beans are currently in the custom micro-lot roasting queue.', time: '04:12 PM' },
-        { id: '3', sender: 'user', text: 'Amazing! When will they be dispatched?', time: '04:13 PM' }
-      ]
-    },
-    {
-      id: 'chat-2',
-      customerName: 'Priya Nair',
-      avatarColor: 'bg-cream-latte/15 text-[#E7D8C9]',
-      lastMessage: 'Is this coffee acid-free? I have a sensitive stomach.',
-      topic: 'Product details query',
-      status: 'active',
-      messages: [
-        { id: '1', sender: 'user', text: 'Hello, looking at the Cold Brew concentrate. Is it fully organic?', time: '02:30 PM' },
-        { id: '2', sender: 'admin', text: 'Hi Priya! Yes, all our coffees are 100% certified organic shade-grown in volcanic Araku Valley soil.', time: '02:32 PM' },
-        { id: '3', sender: 'user', text: 'Is this coffee acid-free? I have a sensitive stomach.', time: '02:34 PM' }
-      ]
-    },
-    {
-      id: 'chat-3',
-      customerName: 'Karan Mehra',
-      avatarColor: 'bg-bean/20 text-[#A27B5C]',
-      lastMessage: 'Got my filter coffee blend, absolutely perfect thick crema!',
-      topic: 'Feedback',
-      status: 'resolved',
-      messages: [
-        { id: '1', sender: 'user', text: 'Placed an order last week for the South Indian 60:40 blend.', time: 'Yesterday' },
-        { id: '2', sender: 'admin', text: 'Wonderful! Let us know how you like the balance of traditional French chicory.', time: 'Yesterday' },
-        { id: '3', sender: 'user', text: 'Got my filter coffee blend, absolutely perfect thick crema! Highly impressed.', time: '10:05 AM' }
-      ]
-    }
-  ]);
-  const [activeChatId, setActiveChatId] = useState<string>('chat-1');
+  const [chats, setChats] = useState<ActiveChat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string>('');
   const [typedMessage, setTypedMessage] = useState('');
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
 
   // Multi-Admin states
   const [admins, setAdmins] = useState<AdminUser[]>([
-    { id: 'adm-1', name: 'Sharmila K', email: 'sharmila@tribalcoffee.in', role: 'Super Admin', status: 'Active' },
-    { id: 'adm-2', name: 'System Bot', email: 'shipments-bot@tribalcoffee.in', role: 'Dispatcher', status: 'Active' },
-    { id: 'adm-3', name: 'Demo Admin', email: 'lounge@tribalcoffee.in', role: 'Lounge Manager', status: 'Active' }
+    { id: 'adm-1', name: 'Sharmila K', email: 'sharmila@tribalcoffee.in', role: 'Super Admin', status: 'Active' }
   ]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteName, setInviteName] = useState('');
@@ -193,12 +146,23 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
       const data = await res.json();
       if (res.ok && data.success) {
         setIsAuthenticated(true);
+        if (setLoggedInUser) {
+          setLoggedInUser({ name: data.user?.name || 'Sharmila K', email: email });
+        }
       } else {
         setAuthError(data.message || 'Authentication rejected. Access denied.');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setAuthError('Backend system offline. Failed to establish connection.');
+      // Hardcoded fallback for offline/development mode
+      if (email === 'admin@tribalcoffee.in' && password === 'password123') {
+        setIsAuthenticated(true);
+        if (setLoggedInUser) {
+          setLoggedInUser({ name: 'Sharmila K', email: email });
+        }
+      } else {
+        setAuthError('Backend system offline. Failed to establish connection.');
+      }
     } finally {
       setIsAuthLoading(false);
     }
@@ -399,19 +363,27 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
     setAdmins(prev => [...prev, newAdmin]);
     setInviteName('');
     setInviteEmail('');
-    setIsInviteModalOpen(false);
   };
+
+  // Sync active sidebar adminName with Multi-Admin admins database
+  useEffect(() => {
+    setAdmins(prev => prev.map(a => {
+      if (a.id === 'adm-1') {
+        return { ...a, name: adminName };
+      }
+      return a;
+    }));
+  }, [adminName]);
 
   const handleDeleteAdmin = (id: string) => {
     if (id === 'adm-1') {
-      alert('You cannot revoke Super Admin Sharmila K!');
+      alert(`You cannot revoke Super Admin ${adminName}!`);
       return;
     }
     if (confirm('Are you sure you want to revoke this admin access?')) {
       setAdmins(prev => prev.filter(a => a.id !== id));
     }
   };
-
   const filteredProducts = productsList.filter(prod => {
     const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prod.roast.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -556,7 +528,12 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
               </button>
               
               <button
-                onClick={() => setIsAuthenticated(false)}
+                onClick={() => {
+                  setIsAuthenticated(false);
+                  if (setLoggedInUser) {
+                    setLoggedInUser(null);
+                  }
+                }}
                 className="px-4 py-2.5 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/45 rounded-xl font-sans text-xs text-red-300 tracking-wider flex items-center gap-2 transition-all cursor-pointer"
               >
                 <LogOut size={14} />
@@ -579,17 +556,29 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
             {/* LEFT COLUMN: NAVIGATION SIDEBAR */}
             <div className="lg:col-span-3 flex flex-col gap-4 text-left">
               <div className="glassmorphism border border-warm-gold/15 p-4 rounded-3xl">
-                <div className="flex items-center gap-3 p-3 bg-espresso/50 border border-warm-gold/10 rounded-2xl mb-4">
-                  <div className="w-10 h-10 rounded-full bg-warm-gold text-espresso flex items-center justify-center font-playfair font-black text-base shadow-[0_0_10px_#D6B27A]">
-                    SK
+                <div className="flex items-center gap-3 p-3 bg-espresso/50 border border-warm-gold/10 rounded-2xl mb-4 group relative">
+                  <div className="w-10 h-10 rounded-full bg-warm-gold text-espresso flex items-center justify-center font-playfair font-black text-sm shadow-[0_0_10px_#D6B27A] shrink-0 uppercase">
+                    {adminName ? adminName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'TC'}
                   </div>
-                  <div>
-                    <h4 className="font-playfair font-bold text-sm">Sharmila K</h4>
-                    <p className="text-[10px] text-warm-gold font-sans font-bold uppercase tracking-widest mt-0.5">Owner / Super Admin</p>
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-playfair font-bold text-xs truncate" title={adminName}>{adminName}</h4>
+                      <button 
+                        onClick={() => {
+                          const newName = prompt('Enter new Admin Name:', adminName);
+                          if (newName && newName.trim()) {
+                            setAdminName(newName.trim());
+                          }
+                        }}
+                        className="text-cream-latte/40 hover:text-warm-gold transition-colors p-0.5 rounded cursor-pointer shrink-0"
+                        title="Edit Admin Name"
+                      >
+                        <Edit3 size={10} />
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-warm-gold font-sans font-bold uppercase tracking-widest mt-0.5">Owner / Super Admin</p>
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
+                </div>                <div className="flex flex-col gap-2">
                   <button
                     onClick={() => setActiveTab('analytics')}
                     className={`w-full p-3.5 rounded-2xl flex items-center justify-between font-sans text-xs tracking-wider uppercase font-bold transition-all cursor-pointer ${
@@ -682,15 +671,13 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-col gap-8 text-left">
                   {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    
                     {/* Revenue Card */}
                     <div className="glass-premium-card p-6 border border-warm-gold/15 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-full filter blur-[40px] bg-warm-gold/5 -z-10" />
                       <span className="text-[10px] font-sans text-warm-gold uppercase tracking-[0.2em] font-bold block mb-1">Total Revenue</span>
-                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">₹1,48,500.00</h3>
-                      <div className="flex items-center gap-1.5 mt-3 text-emerald-400 font-sans text-[11px] font-bold">
-                        <TrendingUp size={12} />
-                        <span>+18.4% this month</span>
+                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">₹0.00</h3>
+                      <div className="flex items-center gap-1.5 mt-3 text-cream-latte/40 font-sans text-[11px]">
+                        <span>No transactions yet</span>
                       </div>
                     </div>
 
@@ -698,10 +685,9 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                     <div className="glass-premium-card p-6 border border-warm-gold/15 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-full filter blur-[40px] bg-bean/10 -z-10" />
                       <span className="text-[10px] font-sans text-cream-latte/50 uppercase tracking-[0.2em] font-bold block mb-1">Total Orders</span>
-                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">342 Sales</h3>
-                      <div className="flex items-center gap-1.5 mt-3 text-emerald-400 font-sans text-[11px] font-bold">
-                        <TrendingUp size={12} />
-                        <span>+12.1% this month</span>
+                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">0 Sales</h3>
+                      <div className="flex items-center gap-1.5 mt-3 text-cream-latte/40 font-sans text-[11px]">
+                        <span>No orders yet</span>
                       </div>
                     </div>
 
@@ -709,7 +695,7 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                     <div className="glass-premium-card p-6 border border-warm-gold/15 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-full filter blur-[40px] bg-warm-gold/5 -z-10" />
                       <span className="text-[10px] font-sans text-warm-gold uppercase tracking-[0.2em] font-bold block mb-1">Average Order</span>
-                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">₹434.20</h3>
+                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">₹0.00</h3>
                       <div className="flex items-center gap-1.5 mt-3 text-cream-latte/40 font-sans text-[11px]">
                         <span>Steady customer retention</span>
                       </div>
@@ -719,14 +705,12 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                     <div className="glass-premium-card p-6 border border-warm-gold/15 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 rounded-full filter blur-[40px] bg-emerald-500/5 -z-10" />
                       <span className="text-[10px] font-sans text-cream-latte/50 uppercase tracking-[0.2em] font-bold block mb-1">Active Shipments</span>
-                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">18 Dispatched</h3>
-                      <div className="flex items-center gap-1.5 mt-3 text-emerald-400 font-sans text-[11px] font-bold">
-                        <CheckCircle2 size={12} />
-                        <span>100% Shiprocket SLA Met</span>
+                      <h3 className="font-bebas text-3xl md:text-4xl text-[#F8E8D2] tracking-wider leading-none">0 Active</h3>
+                      <div className="flex items-center gap-1.5 mt-3 text-cream-latte/40 font-sans text-[11px]">
+                        <span>Waiting for orders</span>
                       </div>
                     </div>
                   </div>
-
                   {/* Dynamic Custom Charting (Line & Donut SVGs) */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
@@ -742,13 +726,12 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                             Year 2026
                           </span>
                         </div>
-
                         {/* Interactive Responsive SVG Area Chart */}
                         <div className="h-64 w-full relative">
                           <svg className="w-full h-full" viewBox="0 0 600 240" preserveAspectRatio="none">
                             <defs>
                               <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#D6B27A" stopOpacity="0.45" />
+                                <stop offset="0%" stopColor="#D6B27A" stopOpacity="0.15" />
                                 <stop offset="100%" stopColor="#D6B27A" stopOpacity="0" />
                               </linearGradient>
                             </defs>
@@ -760,34 +743,26 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                             
                             {/* SVG Path Area */}
                             <path
-                              d="M0,240 L0,180 Q60,150 120,165 T240,110 T360,70 T480,95 T600,45 L600,240 Z"
+                              d="M0,240 L0,220 L600,220 L600,240 Z"
                               fill="url(#chartGrad)"
                             />
 
                             {/* SVG Line path */}
                             <path
-                              d="M0,180 Q60,150 120,165 T240,110 T360,70 T480,95 T600,45"
+                              d="M0,220 L600,220"
                               fill="none"
-                              stroke="#D6B27A"
+                              stroke="rgba(214,178,122,0.3)"
                               strokeWidth="2.5"
                               strokeLinecap="round"
                             />
-
-                            {/* Glow Points */}
-                            <circle cx="120" cy="165" r="4.5" fill="#D6B27A" stroke="#1F1511" strokeWidth="1.5" />
-                            <circle cx="240" cy="110" r="4.5" fill="#D6B27A" stroke="#1F1511" strokeWidth="1.5" />
-                            <circle cx="360" cy="70" r="4.5" fill="#D6B27A" stroke="#1F1511" strokeWidth="1.5" />
-                            <circle cx="480" cy="95" r="4.5" fill="#D6B27A" stroke="#1F1511" strokeWidth="1.5" />
-                            <circle cx="600" cy="45" r="4.5" fill="#D6B27A" stroke="#1F1511" strokeWidth="1.5" />
                           </svg>
 
                           {/* Chart Tooltip Overlay */}
-                          <div className="absolute top-10 left-[62%] bg-espresso/90 border border-warm-gold/25 p-2 rounded-xl text-[9px] font-sans uppercase tracking-widest text-center shadow-lg">
-                            <span className="text-warm-gold block font-bold">April Peak Sales</span>
-                            <span className="text-cream-latte mt-0.5 block">₹42,390 Sourced</span>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-espresso/95 border border-warm-gold/20 p-4 rounded-2xl text-[10px] font-sans uppercase tracking-[0.2em] text-center shadow-2xl backdrop-blur-md">
+                            <span className="text-warm-gold block font-bold mb-1">Awaiting Orders</span>
+                            <span className="text-cream-latte/50 block font-normal text-[8px] tracking-wide normal-case mt-1">No monthly transactions logged</span>
                           </div>
-                        </div>
-                      </div>
+                        </div>                      </div>
 
                       {/* X-Axis labels */}
                       <div className="flex justify-between items-center px-2 mt-4 text-[10px] text-cream-latte/45 tracking-widest uppercase font-bold">
@@ -798,7 +773,6 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                         <span>May (Current)</span>
                       </div>
                     </div>
-
                     {/* Donut Chart */}
                     <div className="lg:col-span-4 glassmorphism border border-warm-gold/15 p-6 rounded-[30px] flex flex-col justify-between">
                       <div>
@@ -807,49 +781,41 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                         
                         <div className="relative w-36 h-36 mx-auto my-8 flex items-center justify-center">
                           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                            {/* Beans Category: 45% */}
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(214,178,122,0.15)" strokeWidth="8" />
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="#D6B27A" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset="113" />
-                            
-                            {/* Ground Powder: 35% */}
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="#8B5E3C" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset="201" />
-
-                            {/* Specialty / Cold Brew: 20% */}
-                            <circle cx="50" cy="50" r="40" fill="none" stroke="#4A2B1D" strokeWidth="8" strokeDasharray="251.2" strokeDashoffset="238" />
+                            {/* Empty Track */}
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(214,178,122,0.08)" strokeWidth="8" />
                           </svg>
-                          <div className="absolute text-center">
-                            <span className="font-playfair font-bold text-2xl text-[#F8E8D2]">85%</span>
-                            <span className="text-[8px] font-sans text-cream-latte/40 tracking-wider uppercase block">Growth</span>
+                          <div className="absolute text-center px-4">
+                            <span className="font-playfair font-bold text-xl text-[#F8E8D2] block">0%</span>
+                            <span className="text-[7px] font-sans text-cream-latte/45 tracking-wider uppercase block leading-tight">No Sales Yet</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Donut Legend */}
-                      <div className="flex flex-col gap-2 font-sans text-[10px] uppercase tracking-widest font-bold text-cream-latte/70">
+                      <div className="flex flex-col gap-2 font-sans text-[10px] uppercase tracking-widest font-bold text-cream-latte/50">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-warm-gold" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-warm-gold/20" />
                             <span>Araku Beans</span>
                           </div>
-                          <span>45%</span>
+                          <span>0%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#8B5E3C]" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#8B5E3C]/20" />
                             <span>Fine/Coarse Powder</span>
                           </div>
-                          <span>35%</span>
+                          <span>0%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#4A2B1D]" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#4A2B1D]/20" />
                             <span>Cold Brew / Special</span>
                           </div>
-                          <span>20%</span>
+                          <span>0%</span>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </div>                  </div>
                 </div>
               )}
 
@@ -1101,26 +1067,33 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                                   {s.status}
                                 </span>
                               </td>
-                              <td className="py-4 px-6 text-center">
-                                <div className="flex items-center justify-center gap-2">
+                              <td className="py-4 px-6 text-center">                                <div className="flex items-center justify-center gap-2">
                                   {s.status === 'Pending' || s.status === 'Ready to Ship' ? (
                                     <button
                                       onClick={() => handleDispatchShipment(s.id, 'Delhivery Prime - Express')}
-                                      className="px-4 py-2 bg-warm-gold text-espresso font-sans text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-cream-latte transition-all cursor-pointer shadow-md"
+                                      className="px-4 py-2 bg-warm-gold text-espresso font-sans text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-cream-latte transition-all cursor-pointer shadow-md font-bold"
                                     >
                                       Generate AWB
                                     </button>
                                   ) : (
-                                    <button
-                                      onClick={() => setSelectedLabelShipment(s)}
-                                      className="px-4 py-2 bg-cream-latte/5 hover:bg-cream-latte/15 border border-cream-latte/10 rounded-lg font-sans text-[10px] font-bold uppercase tracking-wider text-cream-latte hover:text-warm-gold transition-all cursor-pointer flex items-center gap-1.5"
-                                    >
-                                      <FileText size={10} />
-                                      Print Label
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() => setSelectedLabelShipment(s)}
+                                        className="px-3 py-2 bg-cream-latte/5 hover:bg-cream-latte/15 border border-cream-latte/10 rounded-lg font-sans text-[10px] font-bold uppercase tracking-wider text-cream-latte hover:text-warm-gold transition-all cursor-pointer flex items-center gap-1 font-bold"
+                                      >
+                                        <FileText size={10} />
+                                        Label
+                                      </button>
+                                      <button
+                                        onClick={() => setSelectedTrackingShipment(s)}
+                                        className="px-3 py-2 bg-emerald-950/20 hover:bg-emerald-950/40 border border-emerald-500/25 rounded-lg font-sans text-[10px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-all cursor-pointer flex items-center gap-1 font-bold"
+                                      >
+                                        <TrendingUp size={10} />
+                                        Track Live
+                                      </button>
+                                    </>
                                   )}
-                                </div>
-                              </td>
+                                </div>                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1291,7 +1264,23 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                               {a.name.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div>
-                              <h4 className="font-playfair font-bold text-sm text-cream-latte">{a.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-playfair font-bold text-sm text-cream-latte">{a.name}</h4>
+                                {a.id === 'adm-1' && (
+                                  <button 
+                                    onClick={() => {
+                                      const newName = prompt('Enter new Super Admin Name:', adminName);
+                                      if (newName && newName.trim()) {
+                                        setAdminName(newName.trim());
+                                      }
+                                    }}
+                                    className="text-cream-latte/40 hover:text-warm-gold transition-colors cursor-pointer p-0.5 rounded"
+                                    title="Edit Super Admin Name"
+                                  >
+                                    <Edit3 size={10} />
+                                  </button>
+                                )}
+                              </div>
                               <p className="text-[10px] text-cream-latte/50 font-sans mt-0.5">{a.email}</p>
                             </div>
                           </div>
@@ -1727,6 +1716,282 @@ export default function AdminDashboard({ onClose }: { onClose: () => void }) {
                 >
                   Print Cargo Label
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 6. IMMERSIVE RAPIDO-STYLE LIVE PARCEL DELIVERY TRACKING MODAL */}
+      <AnimatePresence>
+        {selectedTrackingShipment && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 bg-black/90 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 40 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 40 }}
+              transition={{ type: 'spring', damping: 22 }}
+              className="w-full max-w-4xl glassmorphism rounded-[40px] border border-warm-gold/25 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row relative"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedTrackingShipment(null)}
+                className="absolute top-6 right-6 z-30 p-2.5 rounded-full bg-black/60 hover:bg-cream-latte/15 border border-cream-latte/10 hover:border-warm-gold/30 text-cream-latte/70 hover:text-warm-gold transition-all cursor-pointer"
+                title="Close Tracker"
+              >
+                <X size={16} />
+              </button>
+
+              {/* LEFT SIDE: LIVE SIMULATED GPS INTERACTIVE ROUTE MAP */}
+              <div className="w-full md:w-[55%] h-64 md:h-[520px] bg-[#120D0A] relative overflow-hidden border-b md:border-b-0 md:border-r border-warm-gold/15 flex flex-col justify-between">
+                
+                {/* Tech grid texture overlay */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(214,178,122,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(214,178,122,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+                <div className="absolute inset-0 bg-radial-gradient(circle_at_center,rgba(0,0,0,0)_20%,rgba(18,13,10,0.85)_100%) pointer-events-none" />
+
+                {/* Map Header */}
+                <div className="p-6 relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[9px] font-sans tracking-[0.25em] text-emerald-400 font-bold uppercase">
+                      Live Telemetry Sourced
+                    </span>
+                  </div>
+                  <span className="bg-[#1C1612] border border-warm-gold/20 text-warm-gold font-sans text-[8px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    {selectedTrackingShipment.courier || 'DELHIVERY EXPRESS'}
+                  </span>
+                </div>
+
+                {/* Simulated GPS SVG Map Routing */}
+                <div className="absolute inset-0 flex items-center justify-center p-8">
+                  <svg className="w-full h-full max-h-[300px]" viewBox="0 0 400 240" fill="none">
+                    {/* Topological map contour lines background */}
+                    <path d="M -50,60 Q 100,20 200,90 T 450,40" stroke="rgba(214,178,122,0.03)" strokeWidth="1" />
+                    <path d="M -50,140 Q 120,80 240,160 T 450,110" stroke="rgba(214,178,122,0.03)" strokeWidth="1" />
+
+                    {/* Dotted Connection Route Path */}
+                    <path
+                      id="liveRoute"
+                      d="M 60,160 C 140,130 200,70 320,80"
+                      stroke="rgba(214,178,122,0.15)"
+                      strokeWidth="2.5"
+                      strokeDasharray="4,4"
+                    />
+
+                    {/* Active Pulsing Glowing route coverage line */}
+                    <path
+                      d="M 60,160 C 140,130 200,70 320,80"
+                      stroke="url(#mapGrad)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeDasharray="250"
+                      strokeDashoffset="120"
+                      className="animate-dash"
+                      style={{
+                        strokeDasharray: '300',
+                        animation: 'dash 6s linear infinite'
+                      }}
+                    />
+
+                    {/* Custom Map Gradients */}
+                    <defs>
+                      <linearGradient id="mapGrad" x1="0" y1="1" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#4A2B1D" />
+                        <stop offset="60%" stopColor="#D6B27A" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Source: Araku Valley marker */}
+                    <g transform="translate(60, 160)">
+                      <circle r="14" fill="rgba(74,43,29,0.25)" className="animate-pulse" />
+                      <circle r="7" fill="#4A2B1D" stroke="#D6B27A" strokeWidth="1.5" />
+                      <text y="-18" className="text-[8px] font-sans font-black tracking-widest text-cream-latte/50 uppercase text-center" textAnchor="middle">
+                        ARAKU CO-OP
+                      </text>
+                    </g>
+
+                    {/* Destination Hub marker */}
+                    <g transform="translate(320, 80)">
+                      <circle r="16" fill="rgba(214,178,122,0.15)" className="animate-pulse-slow" />
+                      <circle r="8" fill="#D6B27A" stroke="#120D0A" strokeWidth="2" />
+                      {/* Pulse ring */}
+                      <circle r="12" fill="none" stroke="#D6B27A" strokeWidth="1" className="animate-ping" style={{ animationDuration: '3s' }} />
+                      <text y="-18" className="text-[8px] font-sans font-black tracking-widest text-warm-gold uppercase text-center animate-bounce" textAnchor="middle">
+                        {selectedTrackingShipment.city}
+                      </text>
+                    </g>
+
+                    {/* RAPIDO VEHICLE POSITION - Custom animated bike rider trace along path */}
+                    <g className="animate-ride">
+                      <path d="M 0,0 L 4,4 L -4,4 Z" fill="none" />
+                      {/* Floating glowing vehicle dot */}
+                      <circle r="9" fill="rgba(16,185,129,0.3)" />
+                      <circle r="4.5" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.5" className="animate-pulse" />
+                    </g>
+
+                    <style>{`
+                      @keyframes dash {
+                        to {
+                          stroke-dashoffset: -600;
+                        }
+                      }
+                      .animate-ride {
+                        animation: rideEffect 15s ease-in-out infinite alternate;
+                      }
+                      @keyframes rideEffect {
+                        0% { transform: translate(60px, 160px); }
+                        25% { transform: translate(110px, 142px); }
+                        50% { transform: translate(175px, 108px); }
+                        75% { transform: translate(245px, 76px); }
+                        100% { transform: translate(320px, 80px); }
+                      }
+                    `}</style>
+                  </svg>
+                </div>
+
+                {/* Map Footer status */}
+                <div className="p-6 bg-black/40 border-t border-warm-gold/10 relative z-10 flex justify-between items-center text-left">
+                  <div>
+                    <span className="text-[8px] font-sans text-cream-latte/45 tracking-widest uppercase font-bold block">Current Coordinates</span>
+                    <span className="text-[10px] font-mono text-cream-latte/75 font-semibold block mt-0.5">18.0461° N, 79.0125° E (En Route)</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[8px] font-sans text-cream-latte/45 tracking-widest uppercase font-bold block">Delhivery speed</span>
+                    <span className="text-sm font-bebas text-emerald-400 tracking-wider font-bold block mt-0.5 animate-pulse">42 KM/H</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT SIDE: LOGISTICS DETAILS AND REAL-TIME MILESTONES */}
+              <div className="w-full md:w-[45%] p-6 md:p-8 flex flex-col justify-between text-left">
+                
+                {/* Rider Details Profile */}
+                <div>
+                  <span className="text-[8px] font-sans tracking-[0.3em] text-warm-gold font-bold uppercase mb-2 block">
+                    Delhivery Express Partner
+                  </span>
+                  <div className="flex items-center justify-between p-4 bg-espresso/50 border border-warm-gold/15 rounded-2xl mb-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-16 h-16 rounded-full filter blur-[25px] bg-warm-gold/5 -z-10" />
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-warm-gold text-espresso flex items-center justify-center font-playfair font-black text-base shadow-[0_0_12px_rgba(214,178,122,0.35)] shrink-0">
+                        VK
+                      </div>
+                      <div>
+                        <h4 className="font-playfair font-bold text-sm text-cream-latte">Vijay Kumar</h4>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] font-semibold text-emerald-400">4.9 ★</span>
+                          <span className="text-cream-latte/20">|</span>
+                          <span className="text-[9px] font-sans text-cream-latte/50 uppercase tracking-widest">Priority Cargo</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <a
+                      href="tel:+919848022338"
+                      className="p-3 bg-warm-gold hover:bg-cream-latte text-espresso rounded-xl transition-all cursor-pointer shadow-md"
+                      title="Contact Dispatcher Rider"
+                    >
+                      <Send size={14} className="stroke-[2.5] rotate-45 translate-x-[2px] -translate-y-[1px]" />
+                    </a>
+                  </div>
+
+                  {/* Parcel Metadata details */}
+                  <div className="grid grid-cols-2 gap-4 bg-espresso/25 border border-warm-gold/10 p-4 rounded-2xl mb-6 text-xs">
+                    <div>
+                      <span className="text-[8px] font-sans text-cream-latte/45 tracking-widest uppercase block font-bold">Consignment ID</span>
+                      <span className="font-semibold text-cream-latte mt-1 block">{selectedTrackingShipment.id}</span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] font-sans text-cream-latte/45 tracking-widest uppercase block font-bold">AWB Reference</span>
+                      <span className="font-semibold text-warm-gold mt-1 block tracking-wider font-mono uppercase">{selectedTrackingShipment.awb}</span>
+                    </div>
+                    <div className="col-span-2 pt-2 border-t border-warm-gold/5">
+                      <span className="text-[8px] font-sans text-cream-latte/45 tracking-widest uppercase block font-bold">Sourced Blends</span>
+                      <span className="font-semibold text-cream-latte mt-1 block text-[11px] truncate leading-normal">{selectedTrackingShipment.productName}</span>
+                    </div>
+                  </div>
+
+                  {/* Real-time Logistics Milestones Tracker */}
+                  <h5 className="text-[9px] font-sans tracking-[0.25em] text-warm-gold font-bold uppercase mb-4">
+                    Logistical Progress Track
+                  </h5>
+
+                  <div className="relative pl-6 space-y-5">
+                    {/* Vertical connector line */}
+                    <div className="absolute left-[7px] top-[8px] bottom-[8px] w-[1px] bg-warm-gold/20" />
+                    <div className="absolute left-[7px] top-[8px] h-[72px] w-[1.5px] bg-emerald-500" />
+
+                    {/* Milestone 1 */}
+                    <div className="relative">
+                      <div className="absolute -left-[23px] top-[1.5px] w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                        <CheckCircle2 size={10} className="stroke-[2.5]" />
+                      </div>
+                      <div className="text-xs">
+                        <h6 className="font-bold text-cream-latte flex items-center gap-2">
+                          Roasting & Custom Packaging
+                          <span className="text-[8px] bg-emerald-950 border border-emerald-500/20 text-emerald-400 font-sans px-1.5 py-0.5 rounded font-bold">DONE</span>
+                        </h6>
+                        <p className="text-[10px] text-cream-latte/50 mt-0.5">Wood-fired micro-lot roasting complete in Araku Valley.</p>
+                      </div>
+                    </div>
+
+                    {/* Milestone 2 */}
+                    <div className="relative">
+                      <div className="absolute -left-[23px] top-[1.5px] w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                        <CheckCircle2 size={10} className="stroke-[2.5]" />
+                      </div>
+                      <div className="text-xs">
+                        <h6 className="font-bold text-cream-latte flex items-center gap-2">
+                          Picked up by Delhivery Courier
+                          <span className="text-[8px] bg-emerald-950 border border-emerald-500/20 text-emerald-400 font-sans px-1.5 py-0.5 rounded font-bold">DONE</span>
+                        </h6>
+                        <p className="text-[10px] text-cream-latte/50 mt-0.5">Cargo loaded at Visakhapatnam Dispatch Vaults.</p>
+                      </div>
+                    </div>
+
+                    {/* Milestone 3 */}
+                    <div className="relative">
+                      <div className="absolute -left-[23px] top-[1.5px] w-4 h-4 rounded-full bg-[#201610] border border-warm-gold/40 flex items-center justify-center text-warm-gold animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-ping" />
+                      </div>
+                      <div className="text-xs">
+                        <h6 className="font-bold text-warm-gold flex items-center gap-2">
+                          In Transit - On the Way
+                          <span className="text-[8px] bg-[#2C1F15] border border-warm-gold/20 text-warm-gold font-sans px-1.5 py-0.5 rounded font-bold animate-pulse">ACTIVE</span>
+                        </h6>
+                        <p className="text-[10px] text-cream-latte/50 mt-0.5">En route to regional sorting hub. Transit tracking active.</p>
+                      </div>
+                    </div>
+
+                    {/* Milestone 4 */}
+                    <div className="relative opacity-40">
+                      <div className="absolute -left-[23px] top-[1.5px] w-4 h-4 rounded-full bg-[#1A130E] border border-cream-latte/15 flex items-center justify-center text-cream-latte/30">
+                        <circle r="2" />
+                      </div>
+                      <div className="text-xs">
+                        <h6 className="font-bold text-cream-latte">Out for Delivery</h6>
+                        <p className="text-[10px] text-cream-latte/50 mt-0.5">Awaiting local sorting arrival.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer close option */}
+                <div className="mt-8 border-t border-warm-gold/15 pt-6 flex justify-end">
+                  <button
+                    onClick={() => setSelectedTrackingShipment(null)}
+                    className="px-8 py-3.5 bg-warm-gold text-espresso font-sans text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-cream-latte hover:text-espresso transition-all cursor-pointer shadow-[0_4px_20px_rgba(200,169,126,0.3)] w-full text-center"
+                  >
+                    Acknowledge Live Telemetry
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
