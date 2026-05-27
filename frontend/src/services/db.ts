@@ -19,7 +19,7 @@ export interface RealProduct {
   glowColor: string;
 }
 
-export const API_BASE_URL = 'http://localhost:5001';
+export const API_BASE_URL = 'http://127.0.0.1:5001';
 
 export const TRIBAL_PRODUCTS: RealProduct[] = [
   {
@@ -147,6 +147,12 @@ export async function fetchProducts() {
 fetchProducts();
 
 export async function addProduct(product: RealProduct) {
+  // Immediate optimistic local update
+  if (!TRIBAL_PRODUCTS.some(p => p.id === product.id)) {
+    TRIBAL_PRODUCTS.push(product);
+    notifyListeners();
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/products`, {
       method: 'POST',
@@ -167,6 +173,13 @@ export async function addProduct(product: RealProduct) {
 }
 
 export async function updateProduct(updated: RealProduct) {
+  // Immediate optimistic local update
+  const idx = TRIBAL_PRODUCTS.findIndex(p => p.id === updated.id);
+  if (idx !== -1) {
+    TRIBAL_PRODUCTS[idx] = updated;
+    notifyListeners();
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/products/${updated.id}`, {
       method: 'PUT',
@@ -187,6 +200,13 @@ export async function updateProduct(updated: RealProduct) {
 }
 
 export async function deleteProduct(id: string) {
+  // Immediate optimistic local update
+  const idx = TRIBAL_PRODUCTS.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    TRIBAL_PRODUCTS.splice(idx, 1);
+    notifyListeners();
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
       method: 'DELETE'

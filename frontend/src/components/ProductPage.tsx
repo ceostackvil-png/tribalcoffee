@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, ShoppingBag, ShieldCheck, HelpCircle, Star, Award, Layers } from 'lucide-react';
+import { X, ShoppingBag, ShieldCheck, HelpCircle, Star, Award, Layers, Heart } from 'lucide-react';
 import { type RealProduct, API_BASE_URL } from '../services/db';
 
 interface ProductPageProps {
   product: RealProduct;
   onClose: () => void;
   onAddToBag: (product: any) => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: (productId: string) => void;
 }
 
-export default function ProductPage({ product, onClose, onAddToBag }: ProductPageProps) {
+export default function ProductPage({ product, onClose, onAddToBag, isWishlisted = false, onToggleWishlist }: ProductPageProps) {
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', backgroundPosition: '0% 0%' });
   const [isStickyVisible, setIsStickyVisible] = useState(false);
   const mainCtaRef = useRef<HTMLDivElement>(null);
@@ -304,6 +306,19 @@ export default function ProductPage({ product, onClose, onAddToBag }: ProductPag
                 className="flex-grow bg-transparent hover:bg-warm-gold text-warm-gold hover:text-espresso border border-warm-gold/40 hover:border-warm-gold font-sans text-xs font-bold tracking-[0.2em] uppercase py-4 rounded-xl cursor-pointer transition-all duration-300 flex items-center justify-center"
               >
                 Buy Now
+              </button>
+
+              <button
+                id={`detail-wishlist-${product.id}`}
+                onClick={() => onToggleWishlist?.(product.id)}
+                className={`p-4 rounded-xl border transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                  isWishlisted 
+                    ? 'bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-950/40' 
+                    : 'bg-transparent border-warm-gold/30 text-warm-gold/70 hover:border-warm-gold hover:text-warm-gold'
+                }`}
+                title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+              >
+                <Heart size={18} className={isWishlisted ? "fill-rose-400 stroke-rose-400" : "stroke-[2]"} />
               </button>
             </div>
 

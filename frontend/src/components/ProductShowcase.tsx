@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion';
-import { ShoppingBag, Eye } from 'lucide-react';
+import { ShoppingBag, Eye, Heart } from 'lucide-react';
 import { TRIBAL_PRODUCTS, type RealProduct, API_BASE_URL } from '../services/db';
 import FloatingCoffeeBean from './FloatingCoffeeBean';
 
 interface ProductShowcaseProps {
   onAddToBag: (product: RealProduct) => void;
   onViewDetails: (product: RealProduct) => void;
+  wishlist: string[];
+  onToggleWishlist: (id: string) => void;
 }
 
-export default function ProductShowcase({ onAddToBag, onViewDetails }: ProductShowcaseProps) {
+export default function ProductShowcase({ onAddToBag, onViewDetails, wishlist, onToggleWishlist }: ProductShowcaseProps) {
   return (
     <section
       id="shop"
@@ -137,13 +139,30 @@ export default function ProductShowcase({ onAddToBag, onViewDetails }: ProductSh
 
               {/* Product Image & Float Animation */}
               <div 
-                onClick={() => onViewDetails(product)}
                 className="relative h-72 w-full flex items-center justify-center mb-6 cursor-pointer"
               >
+                {/* Immersive Floating Heart Wishlist Trigger */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleWishlist(product.id);
+                  }}
+                  className={`absolute top-0 right-0 p-2.5 rounded-full border transition-all duration-300 z-20 cursor-pointer ${
+                    wishlist.includes(product.id)
+                      ? 'bg-warm-gold border-warm-gold text-espresso shadow-[0_0_12px_rgba(214,178,122,0.45)]'
+                      : 'bg-black/60 border-cream-latte/15 text-cream-latte hover:text-warm-gold hover:border-warm-gold/40'
+                  }`}
+                  title={wishlist.includes(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                  aria-label="Toggle Wishlist"
+                >
+                  <Heart size={14} className={wishlist.includes(product.id) ? "fill-current" : ""} />
+                </button>
+
                 {/* Image Soft Shadow Glow Base */}
                 <div className="absolute w-44 h-8 rounded-full bg-black/60 filter blur-xl bottom-4 opacity-80 group-hover:scale-x-95 transition-all duration-700" />
                 
                 <img
+                  onClick={() => onViewDetails(product)}
                   src={product.image.startsWith('http') ? product.image : `${API_BASE_URL}${product.image}`}
                   alt={product.name}
                   className="h-64 object-contain transform scale-110 group-hover:scale-120 group-hover:-translate-y-6 group-hover:rotate-1 transition-all duration-700 filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.9)]"

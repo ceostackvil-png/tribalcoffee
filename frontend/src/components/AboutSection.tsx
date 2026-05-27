@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import FloatingCoffeeBean from './FloatingCoffeeBean';
+import { API_BASE_URL } from '../services/db';
 
 export default function AboutSection() {
   return (
@@ -77,7 +78,7 @@ export default function AboutSection() {
             
             {/* The image itself */}
             <img
-              src="/images/b43c0ab3-fe3a-48b1-8640-12cf74c1a706.webp"
+              src={`${API_BASE_URL}/images/b43c0ab3-fe3a-48b1-8640-12cf74c1a706.webp`}
               alt="Artisanal Coffee Roasting Process"
               className="w-full h-[400px] md:h-[550px] object-cover object-center transform group-hover:scale-105 transition-transform duration-1000 ease-out"
             />

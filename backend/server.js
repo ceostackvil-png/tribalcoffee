@@ -22,6 +22,8 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const DATA_FILE_PATH = path.join(__dirname, 'data', 'products.json');
+const USERS_FILE_PATH = path.join(__dirname, 'data', 'users.json');
+const BOOKINGS_FILE_PATH = path.join(__dirname, 'data', 'bookings.json');
 
 // Helper functions for reading/writing persistent product data
 const readProducts = () => {
@@ -47,29 +49,237 @@ const writeProducts = (products) => {
   }
 };
 
+const readUsers = () => {
+  try {
+    let users = [];
+    if (fs.existsSync(USERS_FILE_PATH)) {
+      const rawData = fs.readFileSync(USERS_FILE_PATH, 'utf8');
+      users = JSON.parse(rawData);
+    }
+    // Seed Super Admin if not already present
+    if (!users.some(u => u.email.toLowerCase() === 'admin@tribalcoffee.in')) {
+      users.push({
+        id: 'adm-1',
+        name: 'Sharmila K',
+        email: 'admin@tribalcoffee.in',
+        password: 'password123',
+        role: 'Super Admin'
+      });
+      fs.writeFileSync(USERS_FILE_PATH, JSON.stringify(users, null, 2), 'utf8');
+    }
+    return users;
+  } catch (err) {
+    console.error('Error reading users file:', err);
+    return [];
+  }
+};
+
+const writeUsers = (users) => {
+  try {
+    fs.writeFileSync(USERS_FILE_PATH, JSON.stringify(users, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error writing to users file:', err);
+    return false;
+  }
+};
+
+const readBookings = () => {
+  try {
+    if (!fs.existsSync(BOOKINGS_FILE_PATH)) {
+      return [];
+    }
+    const rawData = fs.readFileSync(BOOKINGS_FILE_PATH, 'utf8');
+    return JSON.parse(rawData);
+  } catch (err) {
+    console.error('Error reading bookings file:', err);
+    return [];
+  }
+};
+
+const writeBookings = (bookings) => {
+  try {
+    fs.writeFileSync(BOOKINGS_FILE_PATH, JSON.stringify(bookings, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error writing to bookings file:', err);
+    return false;
+  }
+};
+
 // ----------------- API ROUTES -----------------
 
-// 1. Auth Endpoint: Admin Login using Email and Password
+// 1. Auth Endpoint: Admin & User Login
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
 
-  // Professional static administrator check
-  if (email === 'admin@tribalcoffee.in' && password === 'password123') {
+  // Load latest users list from file
+  const users = readUsers();
+
+  // Super admin check dynamically loaded from persistent database
+  const adminUser = users.find(u => u.email.toLowerCase() === 'admin@tribalcoffee.in');
+  if (email.toLowerCase() === 'admin@tribalcoffee.in' && password === (adminUser ? adminUser.password : 'password123')) {
     return res.json({
       success: true,
       user: {
-        id: 'adm-1',
-        name: 'Sharmila K',
+        id: adminUser ? adminUser.id : 'adm-1',
+        name: adminUser ? adminUser.name : 'Sharmila K',
         email: 'admin@tribalcoffee.in',
         role: 'Super Admin'
       },
       token: 'secure-token-tribal-lounge-2026'
     });
-  } else {
+  }
+
+  // Regular user authentication check
+  const matchedUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (!matchedUser) {
+    return res.status(404).json({
+      success: false,
+      message: 'This connoisseur profile does not exist. Please register first.'
+    });
+  }
+
+  if (matchedUser.password !== password) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid administrative email or password. Please verify credentials.'
+      message: 'Authentication rejected. Invalid password credentials.'
     });
+  }
+
+  return res.json({
+    success: true,
+    user: {
+      name: matchedUser.name,
+      email: matchedUser.email,
+      role: 'Connoisseur',
+      address: matchedUser.address
+    }
+  });
+});
+
+// 1b. Auth Endpoint: User Registration
+app.post('/api/auth/register', (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Please complete all fields.' });
+  }
+
+  const users = readUsers();
+  const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (userExists) {
+    return res.status(409).json({ success: false, message: 'This email is not available.' });
+  }
+
+  const newUser = { id: `user-${Date.now()}`, name, email, password };
+  users.push(newUser);
+  const success = writeUsers(users);
+
+  if (success) {
+    res.status(201).json({
+      success: true,
+      user: { name, email, role: 'Connoisseur', address: null }
+    });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to write profile to files.' });
+  }
+});
+
+// 1c. Get Registered Users list for Admin
+app.get('/api/auth/users', (req, res) => {
+  const users = readUsers();
+  res.json(users);
+});
+
+// 1f. Update user profile name and address
+app.put('/api/auth/users/update', (req, res) => {
+  const { email, name, address } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required.' });
+  }
+
+  const users = readUsers();
+  const index = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'User not found in archives.' });
+  }
+
+  if (name) users[index].name = name;
+  if (address) users[index].address = address;
+  const success = writeUsers(users);
+
+  if (success) {
+    const isSuperAdmin = users[index].email.toLowerCase() === 'admin@tribalcoffee.in';
+    res.json({
+      success: true,
+      user: {
+        name: users[index].name,
+        email: users[index].email,
+        role: isSuperAdmin ? 'Super Admin' : 'Connoisseur',
+        address: users[index].address
+      }
+    });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to update user profile.' });
+  }
+});
+
+// 1d. Create Booking/Order History
+app.post('/api/bookings', (req, res) => {
+  const booking = req.body;
+  if (!booking.email || !booking.items) {
+    return res.status(400).json({ success: false, message: 'Invalid booking data.' });
+  }
+
+  const bookings = readBookings();
+  const newBooking = {
+    id: `TRB-${Math.floor(1000 + Math.random() * 9000)}`,
+    date: new Date().toLocaleDateString('en-IN'),
+    ...booking
+  };
+
+  bookings.push(newBooking);
+  const success = writeBookings(bookings);
+
+  if (success) {
+    res.status(201).json({ success: true, booking: newBooking });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to record booking history.' });
+  }
+});
+
+// 1e. Get Booking History
+app.get('/api/bookings', (req, res) => {
+  const bookings = readBookings();
+  res.json(bookings);
+});
+
+// 1g. Update Booking status to Dispatched
+app.put('/api/bookings/:id/dispatch', (req, res) => {
+  const { id } = req.params;
+  const { courier, awb } = req.body;
+
+  const bookings = readBookings();
+  const index = bookings.findIndex(b => b.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'Booking not found.' });
+  }
+
+  bookings[index].status = 'Dispatched';
+  bookings[index].courier = courier || 'Delhivery Express';
+  bookings[index].awb = awb || `SR${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+  const success = writeBookings(bookings);
+
+  if (success) {
+    res.json({ success: true, booking: bookings[index] });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to update dispatch status.' });
   }
 });
 

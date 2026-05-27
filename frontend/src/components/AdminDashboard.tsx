@@ -105,12 +105,80 @@ interface AdminUser {
 
   // Multi-Admin states
   const [admins, setAdmins] = useState<AdminUser[]>([
-    { id: 'adm-1', name: 'Sharmila K', email: 'sharmila@tribalcoffee.in', role: 'Super Admin', status: 'Active' }
+    { id: 'adm-1', name: 'Sharmila K', email: 'admin@tribalcoffee.in', role: 'Super Admin', status: 'Active' }
   ]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'Super Admin' | 'Lounge Manager' | 'Dispatcher'>('Lounge Manager');
+
+  const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
+
+  // Synchronize Super Admin name in admins list with adminName
+  useEffect(() => {
+    setAdmins(prev => prev.map(a => a.id === 'adm-1' ? { ...a, name: adminName, email: 'admin@tribalcoffee.in' } : a));
+  }, [adminName]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/users`);
+        if (res.ok) {
+          const data = await res.json();
+          setRegisteredUsers(data);
+          
+          // Dynamically sync active Super Admin name from backend JSON database
+          const activeAdmin = data.find((u: any) => u.email.toLowerCase() === 'admin@tribalcoffee.in');
+          if (activeAdmin) {
+            setAdminName(activeAdmin.name);
+            if (setLoggedInUser) {
+              setLoggedInUser({
+                name: activeAdmin.name,
+                email: 'admin@tribalcoffee.in',
+                role: 'Super Admin'
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+      }
+    };
+    if (isAuthenticated) {
+      fetchUsers();
+    }
+  }, [isAuthenticated, setLoggedInUser]);
+
+  // Load and subscribe to persistent bookings for Shiprocket Logistics
+  useEffect(() => {
+    const fetchShipments = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/bookings`);
+        if (res.ok) {
+          const data = await res.json();
+          // Map persistent backend bookings to Shiprocket interface structure
+          const mapped: ShipmentOrder[] = data.map((b: any) => ({
+            id: b.id,
+            customerName: b.customerName || 'Connoisseur',
+            email: b.email,
+            city: b.city || 'Visakhapatnam',
+            pincode: b.pincode || '530003',
+            productName: b.items ? b.items.map((i: any) => `${i.name} (x${i.quantity})`).join(', ') : 'Gourmet Selection',
+            amount: b.amount || 0,
+            status: b.status || 'Pending',
+            awb: b.awb,
+            courier: b.courier
+          }));
+          setShipments(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load shipments registry:', err);
+      }
+    };
+    if (isAuthenticated) {
+      fetchShipments();
+    }
+  }, [isAuthenticated]);
 
   // Load and subscribe to database updates
   useEffect(() => {
@@ -271,19 +339,30 @@ interface AdminUser {
     }, 1200);
   };
 
-  const handleDispatchShipment = (id: string, courierName: string) => {
+  const handleDispatchShipment = async (id: string, courierName: string) => {
     const awbNum = `SR${Math.floor(10000000 + Math.random() * 90000000)}`;
-    setShipments(prev => prev.map(s => {
-      if (s.id === id) {
-        return {
-          ...s,
-          status: 'Dispatched',
-          awb: awbNum,
-          courier: courierName
-        };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${id}/dispatch`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courier: courierName, awb: awbNum })
+      });
+      if (res.ok) {
+        setShipments(prev => prev.map(s => {
+          if (s.id === id) {
+            return {
+              ...s,
+              status: 'Dispatched',
+              awb: awbNum,
+              courier: courierName
+            };
+          }
+          return s;
+        }));
       }
-      return s;
-    }));
+    } catch (e) {
+      console.error('Failed to dispatch shipment in backend:', e);
+    }
   };
 
   // Chat message send handler
@@ -540,13 +619,6 @@ interface AdminUser {
                 Lock Vault
               </button>
 
-              <button
-                onClick={onClose}
-                className="p-3 bg-cream-latte/5 hover:bg-cream-latte/15 border border-cream-latte/10 hover:border-warm-gold/30 rounded-xl transition-all cursor-pointer text-cream-latte hover:text-warm-gold"
-                title="Close Dashboard"
-              >
-                <X size={16} />
-              </button>
             </div>
           </div>
 
@@ -558,16 +630,30 @@ interface AdminUser {
               <div className="glassmorphism border border-warm-gold/15 p-4 rounded-3xl">
                 <div className="flex items-center gap-3 p-3 bg-espresso/50 border border-warm-gold/10 rounded-2xl mb-4 group relative">
                   <div className="w-10 h-10 rounded-full bg-warm-gold text-espresso flex items-center justify-center font-playfair font-black text-sm shadow-[0_0_10px_#D6B27A] shrink-0 uppercase">
-                    {adminName ? adminName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'TC'}
+                    {adminName ? adminName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'TC'}
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-playfair font-bold text-xs truncate" title={adminName}>{adminName}</h4>
                       <button 
-                        onClick={() => {
+                        onClick={async () => {
                           const newName = prompt('Enter new Admin Name:', adminName);
                           if (newName && newName.trim()) {
-                            setAdminName(newName.trim());
+                            const trimmed = newName.trim();
+                            setAdminName(trimmed);
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/auth/users/update`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: 'admin@tribalcoffee.in', name: trimmed })
+                              });
+                              if (res.ok && setLoggedInUser) {
+                                const data = await res.json();
+                                setLoggedInUser(data.user);
+                              }
+                            } catch (e) {
+                              console.error('Failed to save admin name in backend:', e);
+                            }
                           }
                         }}
                         className="text-cream-latte/40 hover:text-warm-gold transition-colors p-0.5 rounded cursor-pointer shrink-0"
@@ -1268,10 +1354,24 @@ interface AdminUser {
                                 <h4 className="font-playfair font-bold text-sm text-cream-latte">{a.name}</h4>
                                 {a.id === 'adm-1' && (
                                   <button 
-                                    onClick={() => {
+                                    onClick={async () => {
                                       const newName = prompt('Enter new Super Admin Name:', adminName);
                                       if (newName && newName.trim()) {
-                                        setAdminName(newName.trim());
+                                        const trimmed = newName.trim();
+                                        setAdminName(trimmed);
+                                        try {
+                                          const res = await fetch(`${API_BASE_URL}/api/auth/users/update`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ email: 'admin@tribalcoffee.in', name: trimmed })
+                                          });
+                                          if (res.ok && setLoggedInUser) {
+                                            const data = await res.json();
+                                            setLoggedInUser(data.user);
+                                          }
+                                        } catch (e) {
+                                          console.error('Failed to save admin name in backend:', e);
+                                        }
                                       }
                                     }}
                                     className="text-cream-latte/40 hover:text-warm-gold transition-colors cursor-pointer p-0.5 rounded"
@@ -1297,6 +1397,52 @@ interface AdminUser {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Connoisseur Registry Panel */}
+                  <div className="bg-black/30 border border-warm-gold/15 p-6 rounded-3xl mt-8 backdrop-blur-md">
+                    <div className="mb-6">
+                      <h4 className="font-playfair font-bold text-sm text-warm-gold">Registered Connoisseur Registry</h4>
+                      <p className="text-[10px] text-cream-latte/45 font-sans mt-0.5">Real-time trace of authenticated gourmet coffee consumers.</p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left font-sans text-xs">
+                        <thead>
+                          <tr className="border-b border-warm-gold/10 text-warm-gold/60 text-[9px] uppercase tracking-wider font-bold">
+                            <th className="pb-3">Initials</th>
+                            <th className="pb-3">Name</th>
+                            <th className="pb-3">Email Address</th>
+                            <th className="pb-3">Account ID</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-warm-gold/5 text-cream-latte/85">
+                          {registeredUsers.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="py-6 text-center text-cream-latte/30 font-medium italic">
+                                No registered connoisseur profiles logged in yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            registeredUsers.map((user) => {
+                              const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'C';
+                              return (
+                                <tr key={user.id || user.email} className="hover:bg-cream-latte/[0.02] transition-colors">
+                                  <td className="py-4">
+                                    <div className="w-8 h-8 rounded-full bg-warm-gold/10 border border-warm-gold/25 text-warm-gold flex items-center justify-center font-playfair font-black text-xs">
+                                      {initials}
+                                    </div>
+                                  </td>
+                                  <td className="py-4 font-bold font-playfair">{user.name}</td>
+                                  <td className="py-4 font-mono text-cream-latte/65">{user.email}</td>
+                                  <td className="py-4 text-cream-latte/40 text-[10px] uppercase font-mono">{user.id || 'N/A'}</td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}

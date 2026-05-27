@@ -1,0 +1,37 @@
+[
+  {
+    "id": "user-1779875047033",
+    "name": "nikhil",
+    "email": "nikhimaddali147@gmail.com",
+    "password": "123456"
+  },
+  {
+    "id": "adm-1",
+    "name": "tribal coffee",
+    "email": "admin@tribalcoffee.in",
+    "password": "password123",
+    "role": "Super Admin",
+    "address": {
+      "doorNo": "SF1 dno 4/147",
+      "area": "currency nagar",
+      "landmark": "near indian oil",
+      "city": "Vijayawada",
+      "state": "Andhra Pradesh",
+      "pinCode": "520008"
+    }
+  },
+  {
+    "id": "user-1779877365909",
+    "name": "nikhil",
+    "email": "nikhilmaddali147@gmail.com",
+    "password": "123456",
+    "address": {
+      "doorNo": "SF1 dno 4/147",
+      "area": "currency nagar",
+      "landmark": "near indian oil",
+      "city": "Vijayawada",
+      "state": "Andhra Pradesh",
+      "pinCode": "520008"
+    }
+  }
+]
